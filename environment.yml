@@ -1,0 +1,17 @@
+# environment.yml
+name: uganda-rag
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip>=23.0
+  - fastapi>=0.75.0
+  - uvicorn>=0.17.6
+  - requests>=2.31.0
+  - python-dotenv>=1.0.0
+  - pandas>=2.1.0
+  - pip:
+    - langchain>=0.0.300
+    - transformers>=4.30.0
+    - sentence-transformers>=2.2.2
