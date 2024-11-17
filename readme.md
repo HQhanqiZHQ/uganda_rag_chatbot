@@ -6,5 +6,8 @@
 
 ```cp .env.example .env```
 
+go to ```http://localhost:8000/```
 
-install ```AnythingLLM Browser Companion``` extension
+![alt text](results/localhost1.png)
+![alt text](results/localhost2.png)
+![alt text](results/localhost3.png)

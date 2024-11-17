@@ -1,49 +1,45 @@
-from typing import Dict, Any
-import logging
-from datetime import datetime
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-logger = logging.getLogger(__name__)
+class MediTronEvaluator:
+    def __init__(self, model_name="epfl-llm/meditron-7b"):
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto")
 
-class RAGEvaluator:
-    def __init__(self, openai_api_key: str):
-        self.openai_api_key = openai_api_key
-    
-    def evaluate_response(
-        self,
-        question: str,
-        response: str,
-        expected: Dict,
-        metadata: Dict
-    ) -> Dict[str, Any]:
-        """Evaluate a single response"""
-        # Calculate metrics
-        accuracy = self._calculate_accuracy(response, expected)
-        completeness = self._calculate_completeness(response, expected)
-        
+    def evaluate_response(self, query: str, response: str, reference: str):
+        """
+        Evaluate a response using MediTron for medical accuracy, relevance, and completeness.
+        """
+        accuracy = self._calculate_accuracy(response, reference)
+        relevance = self._calculate_relevance(query, response)
         return {
             "accuracy": accuracy,
-            "completeness": completeness,
-            "overall_score": (accuracy + completeness) / 2,
-            "timestamp": datetime.now().isoformat(),
-            "metadata": metadata
+            "relevance": relevance,
         }
-    
-    def _calculate_accuracy(self, response: str, expected: Dict) -> float:
-        """Calculate response accuracy"""
-        # Simple implementation - count key points
-        key_points_found = 0
-        for point in expected['key_points']:
-            if point.lower() in response.lower():
-                key_points_found += 1
-        
-        return key_points_found / len(expected['key_points'])
-    
-    def _calculate_completeness(self, response: str, expected: Dict) -> float:
-        """Calculate response completeness"""
-        # Simple implementation - check references
-        references_found = 0
-        for ref in expected['references']:
-            if ref.lower() in response.lower():
-                references_found += 1
-        
-        return references_found / len(expected['references'])
+
+    def _calculate_accuracy(self, response: str, reference: str) -> float:
+        """
+        Calculate overlap-based accuracy of response against reference.
+        """
+        response_tokens = set(response.lower().split())
+        reference_tokens = set(reference.lower().split())
+        overlap = response_tokens.intersection(reference_tokens)
+        return len(overlap) / len(reference_tokens)
+
+    def _calculate_relevance(self, query: str, response: str) -> float:
+        """
+        Calculate relevance using cosine similarity between embeddings.
+        """
+        query_embedding = self._get_embedding(query)
+        response_embedding = self._get_embedding(response)
+        return cosine_similarity([query_embedding], [response_embedding])[0][0]
+
+    def _get_embedding(self, text: str) -> np.ndarray:
+        """
+        Generate embeddings for the input text using MediTron.
+        """
+        inputs = self.tokenizer(text, return_tensors="pt")
+        outputs = self.model(**inputs, output_hidden_states=True)
+        embedding = outputs.hidden_states[-1].mean(dim=1).detach().numpy()
+        return embedding.flatten()
