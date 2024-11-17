@@ -1,45 +1,63 @@
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+# Example of how you can manually evaluate the responses
+evaluation_results = []
 
-class MediTronEvaluator:
-    def __init__(self, model_name="epfl-llm/meditron-7b"):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype="auto")
+# Define the responses from the models
+responses = {
+    "gpt4_rag": [
+        "According to the Uganda Clinical Guidelines 2023, the common symptoms of tuberculosis (TB) include: 1. Persistent cough for two weeks or more 2. Chest pain 3. Hemoptysis (coughing up blood) 4. Weight loss 5. Night sweats 6. Fever 7. Fatigue These symptoms are often more severe in the morning. It's important to note that these symptoms can also be indicative of other respiratory diseases, so a definitive diagnosis should be made by a healthcare professional. In the case of extrapulmonary TB (which affects areas outside the lungs), symptoms can vary depending on the affected area. For example, TB of the spine may cause back pain and paralysis, while TB of the kidney might cause blood in the urine. Please refer to the 'Tuberculosis' section of the Uganda Clinical Guidelines 2023 for more detailed information.",
+        "1. **Antiretroviral Therapy (ART):** The Uganda Clinical Guidelines 2023 recommend that all pregnant women with HIV begin or continue Antiretroviral Therapy (ART) for their own health and to prevent mother-to-child transmission of HIV (Section 3.5.2). If the woman is not already on ART, she should start as soon as possible. 2. **Regular Prenatal Care:** Regular prenatal visits are crucial for monitoring the health of both the mother and the unborn child. These visits should include routine HIV care, ART adherence counseling, and monitoring for potential side effects of the medication (Section 3.5.2). 3. **Delivery Planning:** The mode of delivery (vaginal birth or C-section) can be influenced by the woman's viral load near the time of delivery. If the viral load is undetectable or very low, a vaginal birth may be possible. However, if the viral load is high, a C-section may be recommended to reduce the risk of transmission to the baby (Section 3.5.2). 4. **Infant Care Post-Delivery:** After birth, the baby should be given antiretroviral medication for a period of time to further reduce the risk of HIV transmission. The baby should also be tested for HIV at appropriate intervals (Section 3.5.2). **Considerations in Resource-Limited Settings** In resource-limited settings, it may be challenging to access regular prenatal care or certain medications. In these cases, the woman should be encouraged to utilize whatever resources are available to her. For example, if regular viral load testing is not possible, adherence to ART is even more critical. **Follow-Up Recommendations** The woman should be encouraged to attend all scheduled prenatal visits and to adhere strictly to her ART regimen. She should also be educated about the signs and symptoms of potential side effects of ART and advised to seek medical attention if these occur. **Referral Criteria** If the healthcare worker is not able to provide the necessary care (such as initiating ART or managing potential side effects), the woman should be referred to a higher-level healthcare facility or specialist (Section 3.5.2). **Emergency vs Non-Emergency Differentiation** This situation is not an emergency, but it is a high-priority case due to the risk of mother-to-child transmission of HIV. Prompt initiation of ART and regular prenatal care can significantly reduce this risk.",
+        "According to the Uganda Clinical Guidelines 2023, the treatment of anaemia depends on the severity and underlying cause. Here are some general treatment options: 1. **Mild to Moderate Anaemia (Hb 7-10 g/dl)**: Oral iron supplements are typically recommended for mild to moderate anaemia. The standard dose is 200mg of ferrous sulphate (which contains 60mg of elemental iron) taken three times a day. This should be continued for 3 months after the haemoglobin level has returned to normal to replenish iron stores (Uganda Clinical Guidelines 2023, Section on Anaemia). 2. **Severe Anaemia (Hb <7 g/dl)**: Severe anaemia is a medical emergency and requires immediate treatment. The patient should be stabilized with a blood transfusion. The recommended dose is 10-15 ml/kg of packed cells or 20 ml/kg of whole blood (Uganda Clinical Guidelines 2023, Section on Anaemia). 3. **Anaemia due to Nutritional Deficiencies**: If the anaemia is due to a deficiency in vitamin B12 or folate, these should be supplemented. The recommended dose for vitamin B12 is 1000 micrograms intramuscularly every month and for folate is 5mg daily (Uganda Clinical Guidelines 2023, Section on Nutritional Anaemia). **Resource-Level Considerations** In resource-limited settings, it may not always be possible to perform a blood transfusion for severe anaemia. In these cases, oral iron supplementation can be started while arranging for a referral to a higher-level facility. **Follow-Up Recommendations** Patients should be closely monitored to assess their response to treatment. If the patient does not respond to treatment or if the anaemia recurs, further investigation is needed to determine the underlying cause. This may include tests for parasitic infections, chronic diseases, or genetic disorders. If the cause of the anaemia is not clear or if the patient is not responding to treatment, referral to a higher-level facility may be necessary (Uganda Clinical Guidelines 2023, Section on Anaemia).",
+        "Initial Management of a Snake Bite According to the Uganda Clinical Guidelines 2023, the initial steps in managing a snake bite are as follows: 1. **Ensure Safety**: The first step is to ensure the safety of both the patient and the healthcare provider. This includes moving the patient away from the snake to prevent further bites. 2. **Assess the Patient**: The healthcare provider should assess the patient's vital signs, including heart rate, blood pressure, respiratory rate, and oxygen saturation. This will help determine the severity of the bite and the appropriate course of treatment. 3. **Immobilize the Affected Area**: The bitten limb should be immobilized with a splint to prevent the spread of venom. The limb should be kept at heart level or lower. 4. **Clean the Wound**: Clean the wound with soap and water, but do not attempt to suck out the venom or make incisions in the wound. 5. **Administer Antivenom if Necessary**: If the snake is known to be venomous and antivenom is available, it should be administered as soon as possible. However, this should only be done by a healthcare provider who is trained in its use and can monitor for potential allergic reactions. 6. **Refer to a Higher Level of Care**: If the patient's condition is severe or if antivenom is not available, the patient should be referred to a higher level of care as soon as possible. These steps are based on the general principles of first aid and emergency care, and may need to be adapted based on the specific circumstances and resources available (Uganda Clinical Guidelines 2023, Snake Bite Management). Follow-up Recommendations After the initial management, the patient should be closely monitored for signs of venom toxicity, which may include pain, swelling, bleeding, difficulty breathing, and changes in heart rate or blood pressure. If any of these symptoms occur, the patient should be immediately referred to a higher level of care. In addition, the patient should be educated on how to avoid future snake bites, such as by wearing protective clothing and footwear, avoiding areas where snakes are known to live, and not attempting to handle or kill snakes. Resource-Level Considerations In resource-limited settings, antivenom may not be readily available. In these cases, the focus should be on supportive care, including pain management, wound care, and monitoring for complications. If the patient's condition worsens, they should be referred to a higher level of care as soon as possible.",
+        "According to the Uganda Clinical Guidelines 2023, the primary treatment for scabies involves the use of topical medications. Here are the recommended steps: 1. **Permethrin Cream (5%)**: Apply to the entire body from the neck down and leave on for 8-14 hours before washing off. This treatment is typically repeated after 7 days. 2. **Benzyl Benzoate (25%)**: Apply to the entire body from the neck down and leave on for 24 hours before washing off. This treatment is typically repeated after 5-7 days. **Alternative Treatment Options** In case the above treatments are not available, sulfur in petrolatum can be used. Apply the mixture to the entire body for three consecutive nights. **Resource-Level Considerations** Permethrin cream is generally the first-line treatment due to its efficacy and safety profile. However, in resource-limited settings like Uganda, benzyl benzoate may be more readily available and affordable. **Follow-Up Recommendations** Patients should be advised to wash all clothing, bedding, and towels used two days before treatment in hot water and dried in a hot dryer or sunlight. Items that can't be washed should be sealed in a plastic bag for at least 72 hours. All household members and close contacts should be treated at the same time to prevent re-infestation. Patients should be advised to return if symptoms persist 2-3 weeks after treatment, as this may indicate treatment failure or re-infestation. **Referral Criteria** Referral may be necessary if secondary bacterial infection occurs, which can present as increased redness, warmth, swelling, pus, or fever. These recommendations are based on the Uganda Clinical Guidelines 2023. Always refer to the most recent guidelines for the most accurate information."
+    ],
+    "llama_rag": [
+        "According to the Uganda Clinical Guidelines 2023, tuberculosis (TB) is a major public health concern in Uganda, especially due to its high rates of co-infection with HIV. The clinical presentation of TB typically includes symptoms such as a persistent cough, chest pain, weight loss, night sweats, fever, and fatigue. Coughing up blood (hemoptysis) is another key symptom, particularly in advanced cases. TB may also affect other organs outside the lungs (extrapulmonary TB), presenting with diverse clinical manifestations depending on the affected site. Diagnosis is confirmed through sputum smear microscopy, culture, and chest radiographs. For optimal treatment, TB patients are usually given a combination of first-line anti-TB drugs such as isoniazid, rifampicin, pyrazinamide, and ethambutol. In the case of multi-drug resistant TB (MDR-TB), second-line drugs are required. The Uganda Clinical Guidelines emphasize the importance of adherence to the full course of treatment, as failure to do so can lead to drug resistance. Moreover, TB contact tracing and testing are recommended for individuals who have been in close contact with a TB patient, to ensure early detection and reduce transmission.",
+        "The management of HIV during pregnancy in Uganda is guided by the Uganda Clinical Guidelines 2023, which recommend that all HIV-positive pregnant women should begin or continue antiretroviral therapy (ART). ART is crucial in preventing mother-to-child transmission of HIV and improving the overall health of the mother. The guidelines recommend starting ART early in pregnancy to reduce viral load and prevent transmission to the infant. In terms of monitoring, regular follow-up visits for HIV-positive pregnant women are necessary, including routine monitoring of CD4 counts and viral load. Pregnant women are also encouraged to attend antenatal care (ANC) services regularly to monitor the health of both mother and baby. Additionally, for those who are not yet on ART, starting the treatment is essential to lower viral load before delivery. If a woman's viral load is above a certain threshold near delivery, a cesarean section may be considered to prevent transmission during childbirth. The guidelines further suggest that all infants born to HIV-positive mothers should receive post-exposure prophylaxis (PEP) with ART to reduce the risk of infection. A comprehensive approach combining ART for the mother and infant, along with early diagnosis and intervention, is crucial to reduce HIV transmission during pregnancy.",
+        "In Uganda, the treatment of anemia is based on the underlying cause and the severity of the condition. The Uganda Clinical Guidelines 2023 recommend oral iron supplements for mild to moderate anemia, typically in the form of ferrous sulfate. The recommended dosage is 200mg three times daily, with the treatment course lasting for about three months to replenish iron stores. In cases of severe anemia, blood transfusion is required, and patients are closely monitored for adverse reactions. For anemia caused by deficiencies in vitamin B12 or folate, supplementation with these vitamins is recommended, and the guidelines suggest monthly intramuscular injections of vitamin B12 for those with a deficiency. Folate supplementation is given at a dose of 5mg daily. In cases where anemia is caused by other factors, such as chronic diseases or parasitic infections, appropriate treatment is provided based on the specific diagnosis. The Uganda Clinical Guidelines emphasize the importance of treating the underlying cause of anemia to effectively manage the condition.",
+        "According to the Uganda Clinical Guidelines 2023, snake bites are treated as an emergency, and prompt management is critical. The first step in treatment is to ensure the safety of the patient by moving them away from the snake and immobilizing the affected limb. The patient should be monitored for signs of systemic toxicity, which may include shock, hemorrhage, and difficulty breathing. In cases of venomous snake bites, antivenom should be administered as soon as possible. If antivenom is not immediately available, other supportive treatments, such as pain management and intravenous fluids, may be provided. If the bite leads to severe symptoms, including tissue necrosis or organ failure, the patient should be referred to a higher-level facility for specialized care. In Uganda's resource-limited settings, rapid referral and effective use of available resources are crucial in managing snake bite patients. The guidelines also highlight the importance of preventive measures, including educating the public about avoiding snake bites and seeking prompt medical attention in the event of a bite.",
+        "Scabies treatment in Uganda is guided by the Uganda Clinical Guidelines 2023, with the use of topical treatments being the primary approach. The first-line treatment is the application of permethrin cream (5%) to the entire body, which is left on for 8-14 hours before being washed off. For patients who cannot access permethrin, benzyl benzoate (25%) is used as an alternative, applied in a similar manner. If neither permethrin nor benzyl benzoate is available, sulfur ointment in petrolatum is an alternative, applied over three consecutive nights. The guidelines also emphasize the importance of hygiene measures to prevent reinfection, such as washing all clothing, bedding, and towels in hot water. Follow-up visits are recommended to monitor treatment efficacy and prevent reinfection. If symptoms persist after treatment, further management is required, and referral to a higher-level facility may be necessary."
+    ]
+}
 
-    def evaluate_response(self, query: str, response: str, reference: str):
-        """
-        Evaluate a response using MediTron for medical accuracy, relevance, and completeness.
-        """
-        accuracy = self._calculate_accuracy(response, reference)
-        relevance = self._calculate_relevance(query, response)
-        return {
-            "accuracy": accuracy,
-            "relevance": relevance,
-        }
 
-    def _calculate_accuracy(self, response: str, reference: str) -> float:
-        """
-        Calculate overlap-based accuracy of response against reference.
-        """
-        response_tokens = set(response.lower().split())
-        reference_tokens = set(reference.lower().split())
-        overlap = response_tokens.intersection(reference_tokens)
-        return len(overlap) / len(reference_tokens)
+# Define a function to evaluate each response manually
+def evaluate_response(query, response, reference):
+    evaluation = {}
+    
+    # Evaluate Accuracy
+    evaluation["accuracy"] = float(input(f"Rate accuracy (0-1) for query: {query}\nResponse: {response}\n"))
 
-    def _calculate_relevance(self, query: str, response: str) -> float:
-        """
-        Calculate relevance using cosine similarity between embeddings.
-        """
-        query_embedding = self._get_embedding(query)
-        response_embedding = self._get_embedding(response)
-        return cosine_similarity([query_embedding], [response_embedding])[0][0]
+    # Evaluate Relevance
+    evaluation["relevance"] = float(input(f"Rate relevance (0-1) for query: {query}\nResponse: {response}\n"))
+    
+    # Evaluate Resource Awareness (e.g., consider if the response suggests alternative solutions)
+    evaluation["resource_awareness"] = float(input(f"Rate resource awareness (0-1) for query: {query}\nResponse: {response}\n"))
+    
+    # Evaluate Citations (e.g., check if the response has any reference/citations)
+    evaluation["citations"] = input(f"Does the response include citations? (yes/no) for query: {query}\nResponse: {response}\n").lower() == 'yes'
+    
+    return evaluation
 
-    def _get_embedding(self, text: str) -> np.ndarray:
-        """
-        Generate embeddings for the input text using MediTron.
-        """
-        inputs = self.tokenizer(text, return_tensors="pt")
-        outputs = self.model(**inputs, output_hidden_states=True)
-        embedding = outputs.hidden_states[-1].mean(dim=1).detach().numpy()
-        return embedding.flatten()
+# Sample queries and references for evaluation
+queries = [
+    "What are the common symptoms of tuberculosis?",
+    "Scenario: A pregnant woman with HIV is concerned about her unborn child's health. What advice can you provide?",
+    "What are the treatment options for anaemia?",
+    "What are the initial steps in managing a snake bite?",
+    "What are the treatment options for scabies?"
+]
+
+# You can manually evaluate the responses from both models
+for i, query in enumerate(queries):
+    for model_name in responses:
+        response = responses[model_name][i]
+        print(f"\nEvaluating {model_name} Response {i+1} for query: {query}")
+        result = evaluate_response(query, response, None)  # Set reference if needed
+        evaluation_results.append({"query": query, "model": model_name, "response": response, "evaluation": result})
+
+# Print the evaluation results
+for result in evaluation_results:
+    print(f"\nEvaluation for Query: {result['query']}")
+    print(f"Model: {result['model']}")
+    print(f"Response: {result['response']}")
+    print(f"Evaluation: {result['evaluation']}")
