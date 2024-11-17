@@ -16,6 +16,7 @@ dependencies:
   - transformers
   - numpy
   - scikit-learn
+  - openai
   - jinja2
   - pip:
     - langchain>=0.0.300
