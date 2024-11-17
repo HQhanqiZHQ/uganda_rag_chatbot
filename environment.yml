@@ -11,6 +11,12 @@ dependencies:
   - requests>=2.31.0
   - python-dotenv>=1.0.0
   - pandas>=2.1.0
+  - flask
+  - torch
+  - transformers
+  - numpy
+  - scikit-learn
+  - jinja2
   - pip:
     - langchain>=0.0.300
     - transformers>=4.30.0

@@ -130,6 +130,29 @@ class LLMClient:
             }
         }
     
+    def embed_text(self, text: str) -> Dict[str, Any]:
+        """Get embeddings for text using OpenAI's embedding API"""
+        try:
+            # Embedding API for OpenAI, using `text-embedding-ada-002`
+            response = self.openai_client.embeddings.create(
+                model="text-embedding-ada-002",
+                input=text
+            )
+            
+            embedding = response['data'][0]['embedding']
+            logger.info(f"Embedding for text generated successfully.")
+            
+            return {
+                "embedding": embedding,
+                "metadata": {
+                    "model": "text-embedding-ada-002",
+                    "timestamp": time.time()
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error generating embedding: {str(e)}")
+            raise
+    
     def _prepare_messages(self, question: str, context: Optional[str]) -> List[Dict]:
         """Prepare messages for LLM"""
         messages = [
@@ -195,6 +218,13 @@ if __name__ == "__main__":
             )
             print("Response:", response["response"])
             print("Metadata:", response["metadata"])
+            
+            # Get embeddings for a sample text
+            text_to_embed = "Symptoms of malaria include fever, chills, and sweating."
+            embedding_response = openai_client.embed_text(text_to_embed)
+            print("Embedding:", embedding_response["embedding"])
+            print("Embedding Metadata:", embedding_response["metadata"])
+
             # Ensure token usage is printed to console
             logger.info(f"Token Usage: {response['metadata']['usage']}")
     except Exception as e:
