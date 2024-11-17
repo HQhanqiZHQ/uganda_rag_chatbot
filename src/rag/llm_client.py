@@ -1,7 +1,6 @@
-# src/rag/llm_client.py
 import requests
 import logging
-import openai
+from openai import OpenAI
 from typing import Dict, Any, List, Optional
 import json
 from pathlib import Path
@@ -22,10 +21,11 @@ class LLMClient:
         self.model_name = model_name
         self.base_url = base_url.rstrip('/')
         
+        # Initialize OpenAI client if needed
         if model_type == "openai":
             if not api_key:
                 raise ValueError("OpenAI API key is required")
-            openai.api_key = api_key
+            self.openai_client = OpenAI(api_key=api_key)
         
         self.system_prompt = """You are a medical assistant helping healthcare workers in Uganda.
         Use the provided context from the Uganda Clinical Guidelines 2023 to answer questions.
@@ -101,15 +101,20 @@ class LLMClient:
         context: Optional[str],
         temperature: float
     ) -> Dict[str, Any]:
-        """Query OpenAI"""
+        """Query OpenAI using new API format"""
         messages = self._prepare_messages(question, context)
         
-        response = openai.ChatCompletion.create(
+        # Updated OpenAI API call
+        response = self.openai_client.chat.completions.create(
             model=self.model_name,
             messages=messages,
             temperature=temperature,
             max_tokens=2000
         )
+        
+        # Log token usage for debugging or information
+        token_usage = response.usage
+        logger.info(f"Token Usage: Prompt Tokens: {token_usage.prompt_tokens}, Completion Tokens: {token_usage.completion_tokens}, Total Tokens: {token_usage.total_tokens}")
         
         return {
             "response": response.choices[0].message.content,
@@ -117,7 +122,11 @@ class LLMClient:
                 "model": self.model_name,
                 "type": "openai",
                 "timestamp": time.time(),
-                "usage": response.usage._previous
+                "usage": {
+                    "prompt_tokens": token_usage.prompt_tokens,
+                    "completion_tokens": token_usage.completion_tokens,
+                    "total_tokens": token_usage.total_tokens
+                }
             }
         }
     
@@ -150,11 +159,43 @@ Please use this context to inform your response."""
                 response = requests.get(f"{self.base_url}/v1/models")
                 response.raise_for_status()
             else:
-                # Test OpenAI connection
-                openai.Model.list()
+                # Test OpenAI connection using new API
+                models = self.openai_client.models.list()
+                if not any(model.id == self.model_name for model in models.data):
+                    logger.warning(f"Model {self.model_name} not found in available models")
             
             logger.info(f"Successfully connected to {self.model_type}")
             return True
         except Exception as e:
             logger.error(f"Connection test failed: {str(e)}")
             return False
+
+# Usage example
+if __name__ == "__main__":
+    import os
+    from dotenv import load_dotenv
+    
+    # Load environment variables
+    load_dotenv()
+    
+    # Test OpenAI client
+    openai_client = LLMClient(
+        model_type="openai",
+        model_name="gpt-4",
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
+    
+    try:
+        # Test connection
+        if openai_client.test_connection():
+            # Test query
+            response = openai_client.query(
+                "What are the symptoms of malaria?",
+                temperature=0.3
+            )
+            print("Response:", response["response"])
+            print("Metadata:", response["metadata"])
+            # Ensure token usage is printed to console
+            logger.info(f"Token Usage: {response['metadata']['usage']}")
+    except Exception as e:
+        print(f"Error: {e}")
