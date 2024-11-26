@@ -9,6 +9,7 @@ The GPT model is GPT-4 (create a .env file in the root folder of the git repo, p
 
 Open LM Studio, load the llama-3.2-3b-instruct model, then go to the git repo, 
 run
+``python start.py```.
 ```python main.py```.
 
 go to your browser ```http://localhost:8000/```
