@@ -1,1 +1,6 @@
 .env
+chroma
+chroma_data
+eval.py
+data/*
+logs

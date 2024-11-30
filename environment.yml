@@ -21,3 +21,5 @@ dependencies:
     - langchain>=0.0.300
     - transformers>=4.30.0
     - sentence-transformers>=2.2.2
+    - slowapi
+    - pydantic_settings

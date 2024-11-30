@@ -16,3 +16,7 @@ go to your browser ```http://localhost:8000/```
 ![alt text](results/localhost1.png)
 ![alt text](results/localhost2.png)
 ![alt text](results/localhost3.png)
+
+-------------------
+Make sure your dockerdesktop is open.
+```docker run -p 8080:8000 -v $(pwd)/chroma_data:/chroma/chroma chromadb/chroma```

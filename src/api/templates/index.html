@@ -3,50 +3,89 @@
     <head>
         <title>Uganda Clinical Guidelines Chatbot</title>
         <style>
-            /* ... (previous styles) ... */
-            .model-select {
-                margin-bottom: 20px;
+            body { 
+                font-family: Arial, sans-serif; 
+                margin: 20px;
+                background-color: #f5f5f5;
+            }
+            .chat-container { 
+                max-width: 800px; 
+                margin: 0 auto;
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .input-container { 
+                margin: 20px 0;
+                display: flex;
+                gap: 10px;
+            }
+            input[type="text"] { 
+                flex-grow: 1;
                 padding: 10px;
-                background-color: #f8f9fa;
-                border-radius: 4px;
-            }
-            .model-select select {
-                padding: 8px;
-                border-radius: 4px;
                 border: 1px solid #ddd;
-            }
-            .temperature-control {
-                margin-left: 20px;
-                display: inline-block;
-            }
-            .temperature-control input {
-                width: 60px;
-                padding: 8px;
                 border-radius: 4px;
+            }
+            button { 
+                padding: 10px 20px;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #0056b3;
+            }
+            .response { 
+                margin-top: 20px; 
+                white-space: pre-wrap;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+            }
+            .loading { 
+                display: none;
+                color: #666;
+                margin: 10px 0;
+            }
+            #error { 
+                color: #dc3545;
+                display: none;
+                margin: 10px 0;
+                padding: 10px;
+                border-radius: 4px;
+                background: #f8d7da;
+            }
+            .model-select { 
+                margin-bottom: 20px;
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            select, input[type="number"] { 
+                padding: 8px;
                 border: 1px solid #ddd;
+                border-radius: 4px;
             }
         </style>
     </head>
     <body>
-        <h1>Uganda Clinical Guidelines Chatbot</h1>
-        <p>Ask questions about the Uganda Clinical Guidelines 2023</p>
-        
         <div class="chat-container">
+            <h1>Uganda Clinical Guidelines Chatbot</h1>
+            
             <div class="model-select">
-                <label for="model">Select Model:</label>
                 <select id="model">
                     <option value="lmstudio">LM Studio (Local)</option>
                     <option value="openai">OpenAI GPT-4</option>
                 </select>
-                
-                <span class="temperature-control">
-                    <label for="temperature">Temperature:</label>
-                    <input type="number" id="temperature" value="0.3" min="0" max="1" step="0.1">
-                </span>
+                <label for="temperature">Temperature:</label>
+                <input type="number" id="temperature" value="0.3" min="0" max="1" step="0.1">
             </div>
             
             <div class="input-container">
-                <input type="text" id="question" placeholder="Enter your medical question...">
+                <input type="text" id="question" placeholder="Enter your medical question (minimum 10 characters)...">
                 <button onclick="sendQuestion()">Ask</button>
             </div>
             <div id="error"></div>
@@ -54,7 +93,7 @@
             <div id="response" class="response"></div>
         </div>
 
-        <script>
+     <script>
             async function sendQuestion() {
                 const questionInput = document.getElementById('question');
                 const modelSelect = document.getElementById('model');
@@ -64,9 +103,6 @@
                 const loadingDiv = document.getElementById('loading');
                 
                 const question = questionInput.value.trim();
-                const model = modelSelect.value;
-                const temperature = parseFloat(temperatureInput.value);
-                
                 if (!question) {
                     errorDiv.textContent = 'Please enter a question';
                     errorDiv.style.display = 'block';
@@ -80,13 +116,11 @@
                 try {
                     const response = await fetch('/chat', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             question: question,
-                            model: model,
-                            temperature: temperature
+                            model: modelSelect.value,
+                            temperature: parseFloat(temperatureInput.value)
                         })
                     });
                     
@@ -95,15 +129,16 @@
                     
                     if (response.ok) {
                         responseDiv.innerHTML = `
-                            <strong>Question:</strong><br>
-                            ${question}<br><br>
-                            <strong>Answer:</strong><br>
-                            ${data.response}<br><br>
-                            <em>Model: ${data.metadata.model} (${data.metadata.type})</em>
-                        `;
+                            <strong>Question:</strong> ${question}
+
+
+                            <strong>Answer:</strong> ${data.response}
+
+
+                            <em>Model: ${data.metadata.model}, Temperature: ${data.metadata.temperature}</em>`;
                         questionInput.value = '';
                     } else {
-                        errorDiv.textContent = data.detail || 'An error occurred';
+                        errorDiv.textContent = data.detail || 'Error occurred';
                         errorDiv.style.display = 'block';
                     }
                 } catch (error) {
@@ -115,9 +150,7 @@
             }
             
             document.getElementById('question').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendQuestion();
-                }
+                if (e.key === 'Enter') sendQuestion();
             });
         </script>
     </body>
