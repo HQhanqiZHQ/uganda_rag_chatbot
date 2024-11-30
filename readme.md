@@ -12,10 +12,12 @@ run
 ```python main.py```.
 
 go to your browser ```http://localhost:8000/```
+<img width="731" alt="v2_screenshot1" src="https://github.com/user-attachments/assets/bdc37edb-f1f2-4fde-9acb-8e17d13d5bcb">
 
-![alt text](results/localhost1.png)
-![alt text](results/localhost2.png)
-![alt text](results/localhost3.png)
+<img width="665" alt="v2_screenshot2" src="https://github.com/user-attachments/assets/07f7083d-8641-41e4-be90-bdc8f437627b">
+
+
+
 
 -------------------
 Make sure your dockerdesktop is open.
