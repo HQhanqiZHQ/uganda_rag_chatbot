@@ -22,3 +22,4 @@ go to your browser ```http://localhost:8000/```
 -------------------
 Make sure your dockerdesktop is open.
 ```docker run -p 8080:8000 -v $(pwd)/chroma_data:/chroma/chroma chromadb/chroma```
+```python -m src.api.main```
