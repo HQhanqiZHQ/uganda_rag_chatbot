@@ -48,7 +48,7 @@ class LLMClient:
             # Try to get existing collection first
             self.collection = self.chroma_client.get_collection(name=collection_name)
             logger.info(f"Using existing collection: {collection_name}")
-            logger.info(f"Collection has {self.collection.count()} documents")
+            # logger.info(f"Collection has {self.collection.count()} documents")
         except:
             # Create new collection if it doesn't exist
             self.collection = self.chroma_client.create_collection(
