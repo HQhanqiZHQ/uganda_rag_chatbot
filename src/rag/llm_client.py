@@ -205,6 +205,7 @@ class LLMClient:
     def query(
         self,
         question: str,
+        chat_history: List[Dict[str,str]]=None,
         temperature: float = 0.3,
         max_tokens: int = 2000
     ) -> Dict[str, Any]:
@@ -224,6 +225,7 @@ class LLMClient:
                 {"role": "system", "content": f"Context:\n{context}"},
                 {"role": "user", "content": question}
             ]
+            print(context)
             
             # Get completion based on model type
             if self.model_type == "lmstudio":
@@ -254,7 +256,8 @@ class LLMClient:
                     "model": self.model_type,
                     "temperature": temperature,
                     "timestamp": time.time(),
-                    "context_used": bool(context)
+                    "context_used": bool(context),
+                    "context": context
                 }
             }
             
