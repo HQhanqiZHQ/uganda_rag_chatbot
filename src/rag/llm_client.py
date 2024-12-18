@@ -212,7 +212,7 @@ class LLMClient:
         try:
             # Get relevant context
             results = self.collection.query(
-                query_texts=[question],
+                query_embeddings=[self.get_embeddings(question)],
                 n_results=4 # increase number of context chunks, tried 2, not so good.
             )
             
